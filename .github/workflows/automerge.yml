@@ -1,13 +1,31 @@
-name: Auto-merge Dependabot
-on: pull_request
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  automerge:
+  dependabot-auto-merge:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
+
     steps:
-      - uses: peter-evans/enable-pull-request-automerge@v3
+      - name: Fetch Dependabot Metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
         with:
-          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        uses: peter-evans/enable-pull-request-automerge@v3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}     
           pull-request-number: ${{ github.event.pull_request.number }}
           merge-method: squash
